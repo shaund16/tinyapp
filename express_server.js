@@ -1,6 +1,26 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const PORT = 8080;
+
+
+const generateRandomString = () => {
+  let result = '';
+  let randomString =
+  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  
+  let randomStringLength = randomString.length;
+  
+  for (let i = 0; i < 6; i++) {
+    result += randomString[Math.floor(Math.random() * randomStringLength)];
+  }
+  return result;
+};
+
+
+
+
+app.use(bodyParser.urlencoded({extended: true}));
 
 //ejs as the view engine
 app.set('view engine', 'ejs');
@@ -24,17 +44,22 @@ app.get('/hello', (req, res) => {
   res.render('hello_world', templateVars);
 });
 
+app.get('/urls/new', (req, res) => {
+  res.render('urls_new');
+});
+
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render('urls_show', templateVars);
 });
 
-// app.get('/urls.json', (req, res) => {
-//   res.json(urlDatabase);
-// });
-
+app.post('/urls', (req, res) => {
+  console.log(req.body);
+  res.send('Ok');
+});
 
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
