@@ -110,8 +110,10 @@ app.post('/logout', (req, res) => {
 
 //registration page
 app.get('/register', (req, res) => {
-  
-  res.render('registration');
+  const templateVars = {
+    username: req.cookies['username']
+  };
+  res.render('registration', templateVars);
 });
 
  
