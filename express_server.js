@@ -63,7 +63,6 @@ app.post('/urls', (req, res) => {
 //link to longURL page (website)
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  console.log(urlDatabase);
   res.redirect(longURL);
 });
 
@@ -71,6 +70,14 @@ app.get('/u/:shortURL', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   let shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
+  res.redirect('/urls');
+});
+
+//route that updates a URL resource
+app.post('/urls/:id', (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = longURL;
   res.redirect('/urls');
 });
 
