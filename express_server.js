@@ -102,7 +102,7 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
-//username Logout
+///username logout route
 app.post('/logout', (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
