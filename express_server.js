@@ -27,10 +27,12 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xk": "http://www.google.com"
 };
+
 //home page
 app.get('/', (req, res) => {
   res.send("Hello!");
 });
+
 //url pages
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
@@ -50,8 +52,6 @@ app.get('/urls/:shortURL', (req, res) => {
 
 //post new URL from form
 app.post('/urls', (req, res) => {
-  //log the POST request body to the console
-  console.log(req.body);
   //generates 6 char string
   const shortUrlString = generateRandomString();
   //set key of 6 string to the longURL
@@ -62,10 +62,16 @@ app.post('/urls', (req, res) => {
 
 //link to longURL page (website)
 app.get('/u/:shortURL', (req, res) => {
-  //get longURL;
   const longURL = urlDatabase[req.params.shortURL];
   console.log(urlDatabase);
   res.redirect(longURL);
+});
+
+//delete the URL resource
+app.post('/urls/:shortURL/delete', (req, res) => {
+  let shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect('/urls');
 });
 
 app.listen(PORT, () => {
