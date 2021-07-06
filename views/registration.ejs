@@ -10,17 +10,20 @@
 </head>
 <%- include('partials/_header') %>
 <body>
-  <form method="POST" action="/register">
-    <div class="mb-3">
-      <label class="form-label">Email address</label>
-      <input type="email" class="form-control" name="email" />
-    </div>
-    <div class="mb-3">
-      <label for="exampleInputPassword1" class="form-label">Password</label>
-      <input type="password" class="form-control" name="password" >
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
+  <div style="margin: 1em" class="d-flex justify-content-center">
+    <form method="POST" action="/register">
+      <h3 class="margin-bottom: 1em">Registration</h3>
+      <div class="mb-3">
+        <label class="form-label">Email address</label>
+        <input type="email" class="form-control" name="email" />
+      </div>
+      <div class="mb-3">
+        <label for="exampleInputPassword1" class="form-label">Password</label>
+        <input type="password" class="form-control" name="password" >
+      </div>
+      <button type="submit" class="btn btn-dark ">Submit</button>
+    </form>
+  </div>
 
    <!-- Bootstrap JS -->
    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
