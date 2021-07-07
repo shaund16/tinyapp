@@ -6,25 +6,27 @@
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <title>TinyApp</title>
+  <title>Register - TinyApp</title>
 </head>
 <%- include('partials/_header') %>
-<body>
-  <div style="margin: 1em">
-    <form method="POST" action="/register">
-      <h3 class="margin-bottom: 1em">Registration</h3>
-      <div class="mb-3">
-        <label class="form-label">Email address</label>
-        <input type="email" class="form-control" name="email" />
-      </div>
-      <div class="mb-3">
-        <label for="exampleInputPassword1" class="form-label">Password</label>
-        <input type="password" class="form-control" width="50" name="password" >
-      </div>
-      <button type="submit" class="btn btn-dark ">Submit</button>
-    </form>
-  </div>
 
+<body>
+  <body class="text-center">
+    <main class="form-signin">
+      <div class="card text-center">
+        <h3 style="margin: 1em;">Register</h3>
+        <form class="form-inline" action="/register" method="POST" style="justify-content: center; display: flex;">
+          <div class="form-group mb-2" >
+            <label for="email">Email Address:</label>
+            <input style="margin: 0 1em" class="form-control" type="email" name="email" placeholder="Email address" style="width: 300px; margin: 1em">
+            <label for="password">Password:</label>
+            <input style="margin: 0 1em" class="form-control" type="password" name="password" placeholder="password" style="width: 300px; margin: 1em">
+            <button style="justify-content: center;" type="submit" class="btn btn-dark">Submit</button>
+          </div>
+        </form>
+        <p>Been here before? <a href="/login">Login here!</a></p>
+      </div>
+    
    <!-- Bootstrap JS -->
    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
