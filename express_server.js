@@ -19,8 +19,8 @@ const urlDatabase = {
 const users = {
   "userRandomID": {
     id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    email: "2@example.com",
+    password: "1234"
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -29,14 +29,14 @@ const users = {
   }
 };
 
-//function loopUp
+//function lookUp
 const lookUp = (email) => {
   for (const user of Object.values(users)) {
     if (user.email === email) {
-      return true;
+      return user;
     }
   }
-  return false;
+  return null;
 };
 
 //random 6 string
@@ -53,12 +53,12 @@ const generateRandomString = () => {
   return result;
 };
 
-
-
-
 //ejs as the view engine
 app.set('view engine', 'ejs');
 
+
+
+/*****  GETS  ******/
 
 //home page
 app.get('/', (req, res) => {
@@ -92,6 +92,34 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
+//link to longURL page (website)
+app.get('/u/:shortURL', (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+//registration page
+app.get('/register', (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.userID]
+  };
+  if (users[req.cookies.userID]) {
+    return res.redirect('/urls');
+  } else {
+    return res.render('registration', templateVars);
+  }
+});
+
+app.get('/login', (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.userID]
+  };
+  res.render('login', templateVars);
+});
+
+/*****  POSTS  ******/
+
+
 //post new URL from form
 app.post('/urls', (req, res) => {
   //generates 6 char string
@@ -102,11 +130,6 @@ app.post('/urls', (req, res) => {
   res.redirect(`urls/${shortUrlString}`);
 });
 
-//link to longURL page (website)
-app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
 
 //delete the URL resource
 app.post('/urls/:shortURL/delete', (req, res) => {
@@ -125,9 +148,19 @@ app.post('/urls/:id', (req, res) => {
 
 //username login route
 app.post('/login', (req, res) => {
-  res.cookie('userID', req.body.username);
-  console.log(req.body.username);
-  res.redirect('/urls');
+  const userEmail = req.body.email;
+  const userObject = lookUp(userEmail);
+  const userPassword = req.body.password;
+  if (lookUp(userEmail)) {
+    if (userPassword === userObject.password) {
+      res.cookie('userID', userObject.id);
+      res.redirect('/urls');
+    } else {
+      res.status(403).send('User Password doesnt match');
+    }
+  } else {
+    res.status(403).send('Email Not Found');
+  }
 });
 
 ///username logout route
@@ -136,16 +169,6 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
-//registration page
-app.get('/register', (req, res) => {
-  const templateVars = {
-    user: users[req.cookies.userID]
-  };
-  if (req.cookies.userID) {
-    res.redirect('/urls');
-  }
-  res.render('registration', templateVars);
-});
 
 //create a registration handler
 app.post('/register', (req, res) => {
@@ -155,10 +178,10 @@ app.post('/register', (req, res) => {
   //if email or password are empty
   if (!userEmail || !userPassword) {
   //send back response with 400 status code
-    res.status(400).send('Please enter valid email and password!');
+    return res.status(400).send('Please enter valid email and password!');
   //if someone tries to register with email that already in user object
   } else if (lookUp(userEmail)) {
-    res.status(400).send('This email is already in use');
+    return res.status(400).send('This email is already in use');
   }
   users[userID] = {
     id: userID,
@@ -173,3 +196,25 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+
+
+//username not showing that the person is logged in
+//getting undefined when submit login
+
+
+
+
+
+
+
+/*
+ check if the user had cookie set 
+ if (!userID) 
+return res.status(401).send('not authorized to be here')
+
+
+const user = users[userID]
+res.render('protected', {user})
+
+
+*/
