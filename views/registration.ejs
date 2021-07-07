@@ -10,7 +10,7 @@
 </head>
 <%- include('partials/_header') %>
 <body>
-  <div style="margin: 1em" class="d-flex justify-content-center">
+  <div style="margin: 1em">
     <form method="POST" action="/register">
       <h3 class="margin-bottom: 1em">Registration</h3>
       <div class="mb-3">
@@ -19,7 +19,7 @@
       </div>
       <div class="mb-3">
         <label for="exampleInputPassword1" class="form-label">Password</label>
-        <input type="password" class="form-control" name="password" >
+        <input type="password" class="form-control" width="50" name="password" >
       </div>
       <button type="submit" class="btn btn-dark ">Submit</button>
     </form>
