@@ -4,7 +4,9 @@ const app = express();
 const PORT = 8080;
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
+const { generateRandomString, getUserByEmail, urlsForUser } = require('./helpers');
 
+//cookie session
 app.use(cookieSession({
   name: 'session',
   keys: ['purslow']
@@ -39,40 +41,6 @@ const users = {
   }
 };
 
-//function lookUp
-const lookUp = (email) => {
-  for (const user of Object.values(users)) {
-    if (user.email === email) {
-      return user;
-    }
-  }
-  return null;
-};
-
-//filter url database for urls for users
-const urlsForUser = function(userID, database) {
-  let userURLs = {};
-  for (const url in database) {
-    if (database[url].userID === userID) {
-      userURLs[url] = database[url].longURL;
-    }
-  }
-  return userURLs;
-};
-
-//random 6 string
-const generateRandomString = () => {
-  let result = '';
-  let randomString =
-  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  
-  let randomStringLength = randomString.length;
-  
-  for (let i = 0; i < 6; i++) {
-    result += randomString[Math.floor(Math.random() * randomStringLength)];
-  }
-  return result;
-};
 
 //ejs as the view engine
 app.set('view engine', 'ejs');
@@ -83,13 +51,17 @@ app.set('view engine', 'ejs');
 
 //home page
 app.get('/', (req, res) => {
-  res.send("Hello!");
+  if (!req.session.userID) {
+    return res.redirect('/Login');
+  } else {
+    return res.redirect('/urls');
+  }
 });
 
 //url pages
 app.get('/urls', (req, res) => {
   if (!req.session.userID) {
-    return res.redirect('/Login');
+    res.status(401).send('Error ! You are not authorized!');
   }
   const urls = urlsForUser(req.session.userID, urlDatabase);
   const templateVars = {
@@ -101,23 +73,26 @@ app.get('/urls', (req, res) => {
 
 //create new URL
 app.get('/urls/new', (req, res) => {
+  if (!req.session.userID) {
+    return res.redirect('/Login');
+  }
   const templateVars = {
     user: users[req.session.userID],
   };
   res.render('urls_new', templateVars);
 });
 
-//page with longURL and ShortURL
+//page with shorturl edit
 app.get('/urls/:shortURL', (req, res) => {
   const loggedInUser = req.session.userID;
   const databaseObj = urlDatabase[req.params.shortURL];
- 
+  
   if (!databaseObj) {
-    res.status(404).send('Short Url not present!');
+    res.status(404).send('Error ! Short Url does not exist');
     return;
   }
   if (loggedInUser !== databaseObj.userID) {
-    res.status(401).send('You are not authorized!');
+    res.status(401).send('Error ! You are not authorized!');
     return;
   }
   const templateVars = {
@@ -150,6 +125,7 @@ app.get('/register', (req, res) => {
   }
 });
 
+//login page
 app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.session.userID]
@@ -157,8 +133,8 @@ app.get('/login', (req, res) => {
   res.render('login', templateVars);
 });
 
-/*****  POSTS  ******/
 
+/*****  POSTS  ******/
 
 //post new URL from form
 app.post('/urls', (req, res) => {
@@ -210,14 +186,14 @@ app.post('/urls/:id', (req, res) => {
 
 //username login route
 app.post('/login', (req, res) => {
-  const userEmail = req.body.email;
-  const userObject = lookUp(userEmail);
-  if (lookUp(userEmail)) {
-    if (bcrypt.compareSync(req.body.password, userObject.password)) {
-      req.session.userID = userObject.id;
+  const userEmail = getUserByEmail(req.body.email, users);
+  const loginUser = users[userEmail];
+  if (loginUser) {
+    if (bcrypt.compareSync(req.body.password, loginUser.password)) {
+      req.session.userID = loginUser.id;
       res.redirect('/urls');
     } else {
-      res.status(403).send('User Password doesnt match');
+      res.status(403).send('Error! Password doesnt match');
     }
   } else {
     res.status(403).send('Email Not Found');
@@ -227,7 +203,7 @@ app.post('/login', (req, res) => {
 ///username logout route
 app.post('/logout', (req, res) => {
   req.session = null;
-  res.redirect('/urls');
+  res.redirect('/Login');
 });
 
 //create a registration handler
@@ -240,7 +216,7 @@ app.post('/register', (req, res) => {
   //send back response with 400 status code
     return res.status(400).send('Please enter valid email and password!');
   //if someone tries to register with email that already in user object
-  } else if (lookUp(userEmail)) {
+  } else if (getUserByEmail(userEmail)) {
     return res.status(400).send('This email is already in use');
   }
   users[userID] = {
