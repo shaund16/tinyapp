@@ -10,10 +10,15 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 //url Database
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xk": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  }
 };
-
 
 //users database
 const users = {
@@ -37,6 +42,17 @@ const lookUp = (email) => {
     }
   }
   return null;
+};
+
+//filter url database for urls for users
+const urlsForUser = function(userID, database) {
+  let userURLs = {};
+  for (const url in database) {
+    if (database[url].userID === userID) {
+      userURLs[url] = database[url].longURL;
+    }
+  }
+  return userURLs;
 };
 
 //random 6 string
@@ -67,8 +83,9 @@ app.get('/', (req, res) => {
 
 //url pages
 app.get('/urls', (req, res) => {
+  const urls = urlsForUser(req.cookies.userID, urlDatabase);
   const templateVars = {
-    urls: urlDatabase,
+    urls: urls,
     user: users[req.cookies.userID]
   };
   res.render('urls_index', templateVars);
@@ -84,18 +101,33 @@ app.get('/urls/new', (req, res) => {
 
 //page with longURL and ShortURL
 app.get('/urls/:shortURL', (req, res) => {
+  const loggedInUser = req.cookies.userID;
+  const databaseObj = urlDatabase[req.params.shortURL];
+ 
+  if (!databaseObj) {
+    res.status(404).send('Short Url not present!');
+    return;
+  }
+  if (loggedInUser !== databaseObj.userID) {
+    res.status(401).send('You are not authorized!');
+    return;
+  }
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies.userID]
   };
+  console.log('urlDatabase', urlDatabase);
   res.render('urls_show', templateVars);
 });
 
 //link to longURL page (website)
 app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  const dataObj = urlDatabase[req.params.shortURL];
+  if (!dataObj) {
+    res.status(404).send('Short Url not present');
+  }
+  res.redirect(dataObj.longURL);
 });
 
 //registration page
@@ -122,10 +154,17 @@ app.get('/login', (req, res) => {
 
 //post new URL from form
 app.post('/urls', (req, res) => {
+  const loggedInUser = req.cookies.userID;
+  //check the cookie
+  if (!loggedInUser) {
+    res.status(401).send('You must be logged in to create URL');
+    return;
+  }
+
   //generates 6 char string
   const shortUrlString = generateRandomString();
   //set key of 6 string to the longURL
-  urlDatabase[shortUrlString] = req.body.longURL;
+  urlDatabase[shortUrlString] = { longURL: req.body.longURL, userID: req.cookies.userID };
   //redirects url with a new 6 string
   res.redirect(`urls/${shortUrlString}`);
 });
@@ -133,6 +172,18 @@ app.post('/urls', (req, res) => {
 
 //delete the URL resource
 app.post('/urls/:shortURL/delete', (req, res) => {
+  const loggedInUser = req.cookies.userID;
+  const databaseObj = urlDatabase[req.params.shortURL];
+  //if i have a cookie
+  //short url not one of mine response with status code
+  if (!databaseObj) {
+    res.status(401).send('Short Url not present!');
+    return;
+  }
+  if (loggedInUser !== databaseObj.userID) {
+    res.status(401).send('You are not authorized!');
+    return;
+  }
   let shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect('/urls');
@@ -140,6 +191,10 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 //route that updates a URL resource
 app.post('/urls/:id', (req, res) => {
+  const loggedInUser = req.cookies.userID;
+  if (!loggedInUser) {
+    res.status(401).send("You must be logged in to gain access");
+  }
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
@@ -169,7 +224,6 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
-
 //create a registration handler
 app.post('/register', (req, res) => {
   const userID = generateRandomString();
@@ -195,26 +249,3 @@ app.post('/register', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-
-//username not showing that the person is logged in
-//getting undefined when submit login
-
-
-
-
-
-
-
-/*
- check if the user had cookie set 
- if (!userID) 
-return res.status(401).send('not authorized to be here')
-
-
-const user = users[userID]
-res.render('protected', {user})
-
-
-*/
