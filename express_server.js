@@ -14,7 +14,6 @@ app.use(cookieSession({
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-
 //url Database
 const urlDatabase = {
   b6UTxQ: {
@@ -41,15 +40,12 @@ const users = {
   }
 };
 
-
 //ejs as the view engine
 app.set('view engine', 'ejs');
 
-
-
 /*****  GETS  ******/
 
-//home page
+// home page /
 app.get('/', (req, res) => {
   if (!req.session.userID) {
     return res.redirect('/Login');
@@ -58,10 +54,10 @@ app.get('/', (req, res) => {
   }
 });
 
-//url pages
+//url pages /urls
 app.get('/urls', (req, res) => {
   if (!req.session.userID) {
-    res.status(401).send('Error ! You are not authorized!');
+    res.status(401).send('<h1>401 - You are not authorized!</h1>');
   }
   const urls = urlsForUser(req.session.userID, urlDatabase);
   const templateVars = {
@@ -71,7 +67,7 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
-//create new URL
+//create new URL /urls/new
 app.get('/urls/new', (req, res) => {
   if (!req.session.userID) {
     return res.redirect('/Login');
@@ -88,7 +84,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const databaseObj = urlDatabase[req.params.shortURL];
   
   if (!databaseObj) {
-    res.status(404).send('Error ! Short Url does not exist');
+    res.status(404).send('<h1>404 - Short URL does not exist!</h1>');
     return;
   }
   if (loggedInUser !== databaseObj.userID) {
@@ -133,7 +129,6 @@ app.get('/login', (req, res) => {
   res.render('login', templateVars);
 });
 
-
 /*****  POSTS  ******/
 
 //post new URL from form
@@ -152,19 +147,16 @@ app.post('/urls', (req, res) => {
   res.redirect(`urls/${shortUrlString}`);
 });
 
-
 //delete the URL resource
 app.post('/urls/:shortURL/delete', (req, res) => {
   const loggedInUser = req.session.userID;
   const databaseObj = urlDatabase[req.params.shortURL];
-  //if i have a cookie
-  //short url not one of mine response with status code
   if (!databaseObj) {
     res.status(401).send('Short Url not present!');
     return;
   }
   if (loggedInUser !== databaseObj.userID) {
-    res.status(401).send('You are not authorized!');
+    res.status(403).send('You are not authorized!');
     return;
   }
   let shortURL = req.params.shortURL;
@@ -179,8 +171,8 @@ app.post('/urls/:id', (req, res) => {
     res.status(401).send("You must be logged in to gain access");
   }
   const shortURL = req.params.id;
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  const newLongURL = req.body.longURL;
+  urlDatabase[shortURL].longURL = newLongURL;
   res.redirect('/urls');
 });
 
@@ -193,17 +185,17 @@ app.post('/login', (req, res) => {
       req.session.userID = loginUser.id;
       res.redirect('/urls');
     } else {
-      res.status(403).send('Error! Password doesnt match');
+      res.status(401).send('Error! Password doesnt match');
     }
   } else {
-    res.status(403).send('Email Not Found');
+    res.status(401).send('Email Not Found');
   }
 });
 
 ///username logout route
 app.post('/logout', (req, res) => {
   req.session = null;
-  res.redirect('/Login');
+  res.redirect('/urls');
 });
 
 //create a registration handler
@@ -216,17 +208,18 @@ app.post('/register', (req, res) => {
   //send back response with 400 status code
     return res.status(400).send('Please enter valid email and password!');
   //if someone tries to register with email that already in user object
-  } else if (getUserByEmail(userEmail)) {
+  }  else if (getUserByEmail(userEmail, users)) {
+    //send back response with the 400 status code
     return res.status(400).send('This email is already in use');
+  } else {
+    users[userID] = {
+      id: userID,
+      email: userEmail,
+      password: userPassword
+    };
+    req.session.userID = userID;
+    res.redirect('/urls');
   }
-  users[userID] = {
-    id: userID,
-    email: userEmail,
-    password: userPassword
-  };
-  //send back response with the 400 status code
-  req.session.userID = userID;
-  res.redirect('/urls');
 });
  
 app.listen(PORT, () => {
