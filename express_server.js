@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
 //url pages /urls
 app.get('/urls', (req, res) => {
   if (!req.session.userID) {
-    res.status(401).send('<h1>401 - You are not authorized!</h1>');
+    return res.status(401).send('<h1>401 - You are not authorized!</h1>');
   }
   const urls = urlsForUser(req.session.userID, urlDatabase);
   const templateVars = {
@@ -88,7 +88,7 @@ app.get('/urls/:shortURL', (req, res) => {
     return;
   }
   if (loggedInUser !== databaseObj.userID) {
-    res.status(401).send('Error ! You are not authorized!');
+    res.status(401).send('<h1>401 - You are not authorized!</h1>');
     return;
   }
   const templateVars = {
@@ -96,7 +96,6 @@ app.get('/urls/:shortURL', (req, res) => {
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.session.userID]
   };
-  console.log('urlDatabase', urlDatabase);
   res.render('urls_show', templateVars);
 });
 
@@ -104,7 +103,7 @@ app.get('/urls/:shortURL', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const dataObj = urlDatabase[req.params.shortURL];
   if (!dataObj) {
-    res.status(404).send('Short Url not present');
+    return res.status(404).send('<h1>404 - Short Url not present</h1>');
   }
   res.redirect(dataObj.longURL);
 });
@@ -136,7 +135,7 @@ app.post('/urls', (req, res) => {
   const loggedInUser = req.session.userID;
   //check the cookie
   if (!loggedInUser) {
-    res.status(401).send('You must be logged in to create URL');
+    res.status(401).send('<h1>401 - You must be logged in to create URL</h1>');
     return;
   }
   //generates 6 char string
@@ -152,11 +151,11 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   const loggedInUser = req.session.userID;
   const databaseObj = urlDatabase[req.params.shortURL];
   if (!databaseObj) {
-    res.status(401).send('Short Url not present!');
+    res.status(401).send('<h1>401 - Short Url not present!</h1>');
     return;
   }
   if (loggedInUser !== databaseObj.userID) {
-    res.status(403).send('You are not authorized!');
+    res.status(403).send('<h1>403 - You are not authorized!</h1>');
     return;
   }
   let shortURL = req.params.shortURL;
@@ -168,7 +167,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.post('/urls/:id', (req, res) => {
   const loggedInUser = req.session.userID;
   if (!loggedInUser) {
-    res.status(401).send("You must be logged in to gain access");
+    return res.status(401).send("<h1>401 - You must be logged in to gain access</h1>");
   }
   const shortURL = req.params.id;
   const newLongURL = req.body.longURL;
@@ -184,11 +183,14 @@ app.post('/login', (req, res) => {
     if (bcrypt.compareSync(req.body.password, loginUser.password)) {
       req.session.userID = loginUser.id;
       res.redirect('/urls');
+      return;
     } else {
-      res.status(401).send('Error! Password doesnt match');
+      res.status(401).send('<h1>401 - Password doesnt match</h1>');
+      return;
     }
   } else {
-    res.status(401).send('Email Not Found');
+    res.status(401).send('<h1>401 - Email Not Found</h1>');
+    return;
   }
 });
 
@@ -206,11 +208,11 @@ app.post('/register', (req, res) => {
   //if email or password are empty
   if (!userEmail || !userPassword) {
   //send back response with 400 status code
-    return res.status(400).send('Please enter valid email and password!');
+    return res.status(400).send('<h1>400 - Please enter valid email and password! </h1>');
   //if someone tries to register with email that already in user object
   }  else if (getUserByEmail(userEmail, users)) {
     //send back response with the 400 status code
-    return res.status(400).send('This email is already in use');
+    return res.status(400).send('<h1>400 - This email is already in use </h1>');
   } else {
     users[userID] = {
       id: userID,
